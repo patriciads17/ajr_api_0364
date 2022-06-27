@@ -14,14 +14,31 @@ use Validator;
 class EmployeeController extends Controller
 {
 
-    public function index()
+    public function indexEmployee()
     {
-        $employees = Employee::all();
+        $employees = Employee::where('idRole','CSV')->orWhere('idRole','MGR')->orWhere('idRole','ADM')->get();
 
         if(count($employees)>0){
             return response([
                 'message' => 'Retrieve All Success!',
                 'data' => $employees
+            ],200);
+        }
+
+        return response([
+            'message' => 'Empty',
+            'data' => null
+        ],400);
+    }
+
+    public function indexOwner()
+    {
+        $owners = Employee::where('idRole','OWN')->get();
+
+        if(count($owners)>0){
+            return response([
+                'message' => 'Retrieve All Success!',
+                'data' => $owners
             ],200);
         }
 
@@ -93,16 +110,19 @@ class EmployeeController extends Controller
             'email' => 'required|email:rfc,dns|unique:employees',
         ]);
 
+        if($newEmployee['idRole'] == 'OWN'){
+            $prefix = 'OWN-';
+            $length = 7;
+        }
+
         if($newEmployee['idRole'] == 'MGR'){
             $prefix = 'MGR-';
             $length = 7;
-            //$idEmp =IdGenerator::generate(['table' => 'employees', 'length' => $length, 'prefix' => $prefix]);
         }
         
         else if($newEmployee['idRole'] == 'ADM'){
             $prefix = 'ADM-';
             $length = 7;
-            //$idEmp =IdGenerator::generate(['table' => 'employees', 'length' => $length, 'prefix' => $prefix]);
         }
         
         else if($newEmployee['idRole'] == 'CSV'){
@@ -112,8 +132,6 @@ class EmployeeController extends Controller
         };
         $idEmp =IdGenerator::generate(['table' => 'employees', 'length' => $length, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
         $newEmployee['id'] = $idEmp;
-        
-
         
         $newEmployee['password'] = bcrypt($newEmployee['tgl_lahir_pegawai']);
 
@@ -179,7 +197,6 @@ class EmployeeController extends Controller
 
         if($request->file('url_foto_pegawai')){
             $validate = Validator::make($dataUpdate, [
-
                 'url_foto_pegawai' => 'image|mimes:jpeg,png,jpg,gif,svg|file|max:2048'
             ]);
             

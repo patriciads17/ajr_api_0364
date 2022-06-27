@@ -52,6 +52,14 @@ return [
             'driver' => 'passport',
             'provider' => 'users',
         ],
+        'driver' => [
+            'driver' => 'session',
+            'provider' => 'drivers',
+        ],
+        'driver-api' => [
+            'driver' => 'passport',
+            'provider' => 'drivers',
+        ],
         'employee' => [
             'driver' => 'session',
             'provider' => 'employees',
@@ -89,6 +97,11 @@ return [
             'driver' => 'eloquent',
             'model' => App\Models\Employee::class,
         ],
+
+        'drivers' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\Driver::class,
+        ],
     ],
 
     /*
@@ -115,6 +128,12 @@ return [
         ],
         'employees' => [
             'provider' => 'employees',
+            'table' => 'password_resets',
+            'expire' => 60,
+            'throttle' => 60,
+        ],
+        'drivers' => [
+            'provider' => 'drivers',
             'table' => 'password_resets',
             'expire' => 60,
             'throttle' => 60,

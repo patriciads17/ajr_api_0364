@@ -44,6 +44,38 @@ class PromoController extends Controller
         ],400);
     }
 
+    public function showSelectedPromo($id)
+    {
+        $promo = Promo::where('kode_promo', $id)->pluck('besar_potongan');
+        if(count($promo)>0){
+            return response([
+                'message' => 'Retrieve All Success!',
+                'data' => $promo
+            ],200);
+        }
+
+        return response([
+            'message' => 'Empty',
+            'data' => null
+        ],400);
+    }
+
+    public function indexActiveKodePromo()
+    {
+        $promos = Promo::where('status_promo', 'Available')->pluck('kode_promo');
+        if(count($promos)>0){
+            return response([
+                'message' => 'Retrieve All Success!',
+                'data' => $promos
+            ],200);
+        }
+
+        return response([
+            'message' => 'Empty',
+            'data' => null
+        ],400);
+    }
+
     public function store(Request $request)
     {
         $newPromo = $request->all();

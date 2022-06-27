@@ -27,7 +27,11 @@ class AuthController extends Controller
         $validate = Validator::make($registrationData, [
             'nama_customer' => 'required|min:1',
             'email' => 'required|email:rfc,dns|unique:users',
-            'tgl_lahir_customer' => 'required|date',//jgn lupa di UI tetap dibuat saja nama fieldnya tgl lahir.
+            'tgl_lahir_customer' => 'required|date|date_format:Y-m-d',
+            'alamat_customer' => 'required',
+            'no_telp_customer' => 'required|numeric|regex:/(08)[0-9]{8,11}/',
+            'gender_customer' => 'required|in:Male,Female',
+            'url_tanda_pengenal' => 'required|image|mimes:jpeg,png,jpg,gif,svg|file|max:2048',
         ]);
 
         $registrationData['id'] = $idCust;
@@ -36,6 +40,40 @@ class AuthController extends Controller
             return response(['message' => $validate->errors()], 400);
         
         $registrationData['password'] = bcrypt($registrationData['tgl_lahir_customer']);
+
+        if($request->file('url_tanda_pengenal')){
+            $request->file('url_tanda_pengenal')->store('customer/tanda_pengenal','public');
+            $registrationData['url_tanda_pengenal'] =$request->file('url_tanda_pengenal')->store('customer/tanda_pengenal','public');
+        }
+
+        if($request->file('url_sim_customer')){
+            $validate = Validator::make($registrationData, [
+                'url_sim_customer' => 'image|mimes:jpeg,png,jpg,gif,svg|file|max:2048',
+            ]);
+            
+            if($validate->fails()){
+                return response([
+                    'message' => $validate->errors()
+                ],400);
+            }
+            $request->file('url_sim_customer')->store('customer/sim','public');
+            $registrationData['url_sim_customer'] = $request->file('url_sim_customer')->store('customer/sim','public');
+        }
+
+        if($request->file('url_pp_customer')){
+            $validate = Validator::make($registrationData, [
+
+                'url_pp_customer' => 'image|mimes:jpeg,png,jpg,gif,svg|file|max:2048'
+            ]);
+            
+            if($validate->fails()){
+                return response([
+                    'message' => $validate->errors()
+                ],400);
+            }
+            $request->file('url_pp_customer')->store('customer/pp','public');
+            $registrationData['url_pp_customer'] = $request->file('url_pp_customer')->store('customer/pp','public');
+        }
 
         $user = User::create($registrationData);
         
@@ -67,11 +105,20 @@ class AuthController extends Controller
                 'token_type' => 'Bearer',
                 'access_token' => $token
             ]);
+        }elseif(Auth::guard('driver')->attempt(['email' => request('email'), 'password' => request('password')])){
+            $user = Auth::guard('driver')->user();
+            $token = $user->createToken('Authentication Token')->accessToken;
+            
+            return response([
+                'message' => 'Login Success!',
+                'user' => $user,
+                'token_type' => 'Bearer',
+                'access_token' => $token
+            ]);
         }elseif(Auth::guard('employee')->attempt(['email' => request('email'), 'password' => request('password')] )){
             
             $user = Auth::guard('employee')->user();
 
-            // still not perfectly working
             if($user->idRole == 'MGR'){
                 $tokenData = $user->createToken('Authentication Token', ['manager']);
             }elseif($user->idRole == 'ADM'){
@@ -79,7 +126,7 @@ class AuthController extends Controller
             }elseif($user->idRole == 'CSV'){
                 $tokenData = $user->createToken('Authentication Token', ['cs']);
             };
-            //
+            
 
             $token = $tokenData->token;
 
@@ -102,15 +149,24 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
-        if(Auth::guard('user')){
+        if(Auth::guard($request->guard)){
             auth()->user()->token()->revoke();
             return response([
                 'message' => 'Logout Success!',
             ], 200);
-        }elseif(Auth::guard('employee')){
+        }elseif(Auth::guard($request->guard)){
             auth()->user()->token()->revoke();
             return response([
                 'message' => 'Logout Success!',
+            ], 200);
+        }elseif(Auth::guard($request->guard)){
+            auth()->user()->token()->revoke();
+            return response([
+                'message' => 'Logout Success!',
+            ], 200);
+        }else{
+            return response([
+                'message' => 'Logout Failed!',
             ], 200);
         }
     }

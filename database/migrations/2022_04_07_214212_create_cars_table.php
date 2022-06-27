@@ -15,7 +15,7 @@ class CreateCarsTable extends Migration
     {
         Schema::create('cars', function (Blueprint $table) {
             $table->string('id')->primary();
-            $table->string('idMitra')->references('id_mitra')->on('partners')->nullable();
+            $table->string('idMitra')->references('id')->on('partners')->nullable();
             $table->string('no_plat');
             $table->string('nama_mobil');
             $table->string('jenis_transmisi');
@@ -32,7 +32,7 @@ class CreateCarsTable extends Migration
             $table->date('tgl_selesai_kontrak')->nullable();
             $table->float('vol_bagasi');
             $table->string('tipe_mobil');
-            $table->enum('status_kontrak',['Active','Inactive'])->nullable();
+            $table->enum('status_kontrak',['Active','Warning','Inactive'])->default('Active');
             $table->string('url_car_img')->default('default/noimgcar.png');
             $table->timestamps();
         });

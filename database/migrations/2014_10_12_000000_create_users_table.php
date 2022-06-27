@@ -17,7 +17,7 @@ class CreateUsersTable extends Migration
             $table->string('id')->primary();
             $table->string('nama_customer');
             $table->string('alamat_customer')->nullable();
-            $table->enum('gender_customer',['Male','Female',''])->nullable();
+            $table->enum('gender_customer',['Male','Female'])->nullable();
             $table->date('tgl_lahir_customer');
             $table->string('no_telp_customer')->nullable();
             $table->string('email');
@@ -25,7 +25,7 @@ class CreateUsersTable extends Migration
             $table->string('url_tanda_pengenal')->default('default/noimg.jpg');
             $table->string('url_sim_customer')->default('default/noimg.jpg');
             $table->string('url_pp_customer')->default('default/nopp.png');
-            $table->enum('status_akun',['Active','Inactive'])->nullable();
+            $table->enum('status_akun',['Active','Inactive'])->default('Inactive');
             $table->rememberToken();
             $table->timestamps();
         });

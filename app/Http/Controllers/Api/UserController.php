@@ -66,7 +66,7 @@ class UserController extends Controller
         }
 
         $validate = Validator::make($request->all(), [
-            'status_akun' => 'in:Active,Inactive',
+            'status_akun' => 'in:Active,Inactive,Deleted',
         ]);
 
         if($validate->fails()){
@@ -103,11 +103,11 @@ class UserController extends Controller
         $dataUpdate = $request->all();
 
         $validate = Validator::make($dataUpdate, [
-            'nama_customer' => 'min:5',
-            'alamat_customer' => 'min:5',
-            'tgl_lahir_customer' => 'date|date_format:Y-m-d',
-            'gender_customer' => 'in:Male,Female',
-            'no_telp_customer' => 'numeric|regex:/(08)[0-9]{8,11}/',
+            'nama_customer' => 'required',
+            'alamat_customer' => 'required',
+            'tgl_lahir_customer' => 'required|date|date_format:Y-m-d',
+            'gender_customer' => 'required|in:Male,Female',
+            'no_telp_customer' => 'required|numeric|regex:/(08)[0-9]{8,11}/',
             'email' => [
                 'required', 'email:rfc,dns',
                 Rule::unique('users')->ignore($customer->id),

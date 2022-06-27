@@ -8,6 +8,7 @@ use App\Models\Car;
 use Haruncpi\LaravelIdGenerator\IdGenerator;
 use Validator;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class CarController extends Controller
 {
@@ -28,9 +29,25 @@ class CarController extends Controller
         ],400);
     }
 
-    public function indexActiveCar()
+    public function showCarByType()
     {
-        $cars = Car::where('ketersediaan_mobil', 'Available')->get();
+        $cars = DB::table('cars')->select('*')->orderBy('tipe_mobil')->get();
+        if(count($cars)>0){
+            return response([
+                'message' => 'Retrieve All Success!',
+                'data_array' => $cars
+            ],200);
+        }
+
+        return response([
+            'message' => 'Empty',
+            'data_array' => null
+        ],400);
+    }
+
+    public function showAvailableCar()
+    {
+        $cars = Car::where('ketersediaan_mobil','Available')->get();
         if(count($cars)>0){
             return response([
                 'message' => 'Retrieve All Success!',
@@ -114,6 +131,58 @@ class CarController extends Controller
         ],404);
     }
 
+    public function updateStatusContract(){
+        $now = Carbon::now()->format('Y-m-d');
+        $cars = Car::where('kategori_aset', 'Partner')->get();
+        foreach($cars as $car){
+            $finishDay = Carbon::parse($car->tgl_selesai_kontrak);
+            $dateleft = Carbon::now()->diffInDays($finishDay);
+
+            if($dateleft <= 30){
+                $car->status_kontrak = 'Warning';
+            }else if($dateleft == 0){
+                $car->status_kontrak = 'Inactive';
+            }else{
+                $car->status_kontrak = 'Active';
+            }
+            
+            if($car->save()){
+                return response([
+                    'message' => 'Update Car Success',
+                    'data' => $dateleft
+                ],200);
+            }
+            return response([
+                'message' => 'Update Car Failed',
+                'data' => null
+            ],400);
+        }
+    }
+
+    public function updateAvailabilityCar(Request $request, $id)
+    {
+        $car = Car::find($id);
+        if(is_null($car)){
+            return response([
+                'data' => null
+            ],404);
+        }
+
+        $car->ketersediaan_mobil = $request->ketersediaan_mobil;
+
+        if($car->save()){
+            return response([
+                'message' => 'Update Car Success',
+                'data' => $car
+            ],200);
+        }
+
+        return response([
+            'message' => 'Update Car Failed',
+            'data' => null
+        ],400);
+    }
+
     public function update(Request $request)
     {
         $dataUpdate = $request->all();
@@ -193,42 +262,6 @@ class CarController extends Controller
         $car->vol_bagasi  = $dataUpdate['vol_bagasi'];
         $car->tipe_mobil  = $dataUpdate['tipe_mobil'];
 
-        if($car->save()){
-            return response([
-                'message' => 'Update Car Success',
-                'data' => $car
-            ],200);
-        }
-
-        return response([
-            'message' => 'Update Car Failed',
-            'data' => null
-        ],400);
-    }
-
-    public function contractDeadline($id)
-    {
-        $now = Carbon::now()->format('Y-m-d');
-        $finishDay = Carbon::parse(Car::where('id',$id)->value('tgl_selesai_kontrak'));
-        $dateleft = Carbon::parse(Carbon::now())->diffInDays($finishDay);
-
-        return response([
-            'data' => $dateleft
-        ],400);
-    }
-
-    public function updateByDeadline(Request $request,$id)
-    {
-        $car = Car::find($id);
-        if(is_null($car)){
-            return response([
-                'message' => 'Car Not Found',
-                'data' => null
-            ],404);
-        }
-
-        $car->deadline = $request->deadline;
-        
         if($car->save()){
             return response([
                 'message' => 'Update Car Success',
